@@ -1,0 +1,115 @@
+import java.util.*;
+/**
+   Jhana Marie Catabas
+   BSIT-2B
+**/
+
+public class InfixToPostfix {
+    public static String infixToPostfix(String infix) {
+        StringBuilder postfix = new StringBuilder();
+        Stack<Character> stack = new Stack<>();
+
+        for (char c : infix.toCharArray()) {
+            if (Character.isLetterOrDigit(c)) {
+                postfix.append(c);
+            } else if (c == '(') {
+                stack.push(c);
+            } else if (c == ')') {
+                while (!stack.isEmpty() && stack.peek() != '(') {
+                    postfix.append(stack.pop());
+                }
+                if (!stack.isEmpty() && stack.peek() == '(') {
+                    stack.pop(); // Pop the '('
+                } else {
+                    return "Invalid infix expression - Mismatched parentheses";
+                }
+            } else {
+                while (!stack.isEmpty() && precedence(c) <= precedence(stack.peek())) {
+                    postfix.append(stack.pop());
+                }
+                stack.push(c);
+            }
+        }
+
+        while (!stack.isEmpty()) {
+            if (stack.peek() == '(') {
+                return "Invalid infix expression - Mismatched parentheses";
+            }
+            postfix.append(stack.pop());
+        }
+
+        return postfix.toString();
+    }
+
+    private static int precedence(char operator) {
+        switch (operator) {
+            case '+':
+            case '-':
+                return 1;
+            case '*':
+            case '/':
+                return 2;
+            case '^':
+                return 3;
+        }
+        return -1; // For other characters
+    }
+    
+class PostfixEvaluator {
+   public static int evaluatePostfix(String postfixExpression) {
+      Stack<Integer> stack = new Stack<>();
+        for (char c : postfixExpression.toCharArray()) {
+            if (Character.isDigit(c)) {
+                stack.push(Character.getNumericValue(c));
+            } else {
+                int operand2 = stack.pop();
+                int operand1 = stack.pop();
+                int result;
+
+                switch (c) {
+                    case '+':
+                        result = operand1 + operand2;
+                        break;
+                    case '-':
+                        result = operand1 - operand2;
+                        break;
+                    case '*':
+                        result = operand1 * operand2;
+                        break;
+                    case '/':
+                        result = operand1 / operand2;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid postfix operator: " + c);
+                }
+
+                stack.push(result);
+            }
+        }
+
+        if (stack.size() != 1) {
+            throw new IllegalArgumentException("Invalid postfix expression");
+        }
+
+        return stack.pop();
+  }
+}
+    public static void main(String[] args) {
+        System.out.print("Enter an infix expression: ");
+        Scanner scan = new Scanner(System.in);
+        String input = scan.nextLine();
+        scan.close();
+
+        String postfix = infixToPostfix(input);
+        if (postfix.contains("Invalid infix expression")) {
+            System.out.println(postfix);
+        } else {
+            System.out.println("Postfix Expression: " + postfix);
+        }
+        String postfixExpression = infixToPostfix(input);
+
+        int result = PostfixEvaluator.evaluatePostfix(postfixExpression);
+
+        System.out.println("Result: " + result);
+   }
+}
