@@ -1,0 +1,265 @@
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+public class BinaryTree {
+    private TreeNode root;
+    private int[] values;
+
+    private static class TreeNode {
+        int key;
+        TreeNode left, right;
+
+        public TreeNode(int item) {
+            key = item;
+            left = right = null;
+        }
+    }
+
+    public static void main(String[] args) {
+        BinaryTree binaryTree = new BinaryTree();
+        Scanner scanner = new Scanner(System.in);
+
+        int choice;
+        do {
+            System.out.println("\nBinary Tree Operations:");
+            System.out.println("1. Enter series of numbers");
+            System.out.println("2. Traversals");
+            System.out.println("   a. Inorder");
+            System.out.println("   b. Post Order");
+            System.out.println("   c. Pre Order");
+            System.out.println("3. Insert");
+            System.out.println("4. Delete");
+            System.out.println("5. Search");
+            System.out.println("6. Exit");
+
+            System.out.print("Enter your choice: ");
+            while(!scanner.hasNextInt()){
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.next();
+                System.out.print("Enter your choice: ");
+            }
+            choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    binaryTree.displayArray();
+                    scanner.nextLine();
+                    System.out.println("Enter a series of numbers (separated by spaces): ");
+                    String input = scanner.nextLine();
+
+                    String[] numbersStringArray = input.split(" ");
+                    for (String numberString : numbersStringArray) {
+                        try {
+                            int number = Integer.parseInt(numberString);
+                            binaryTree.insert(number); // Call insert method using the binaryTree instance
+                            System.out.println(" " + number);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid input: " + numberString);
+                        }
+                    }
+                    break;
+                case 2:
+                    binaryTree.displayArray();
+                    System.out.println("Inorder Traversal: " + binaryTree.inorderTraversal());
+                    System.out.println("Postorder Traversal: " + binaryTree.postorderTraversal());
+                    System.out.println("Preorder Traversal: " + binaryTree.preorderTraversal());
+                    break;
+                case 3:
+                    binaryTree.displayArray();
+                    try {
+                        System.out.print("Enter value to insert: ");
+                        int insertValue = scanner.nextInt();
+                        binaryTree.insert(insertValue);
+                        System.out.println("Value inserted successfully.");
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input. Please enter an integer.");
+                        scanner.next(); // Consume the invalid input
+                    }
+                    break;
+                case 4:
+                    binaryTree.displayArray();
+                    try {
+                        System.out.print("Enter value to delete: ");
+                        int deleteValue = scanner.nextInt();
+                        binaryTree.delete(deleteValue);
+                        System.out.println("Value deleted successfully.");
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input. Please enter an integer.");
+                        scanner.next(); // Consume the invalid input
+                    }
+                    break;
+                case 5:
+                    binaryTree.displayArray();
+                    try {
+                        System.out.print("Enter value to search: ");
+                        int searchValue = scanner.nextInt();
+                        if (binaryTree.search(searchValue)) {
+                            System.out.println(searchValue + " found in the binary tree.");
+                        } else {
+                            System.out.println(searchValue + " not found in the binary tree.");
+                        }
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input. Please enter an integer.");
+                        scanner.next(); // Consume the invalid input
+                    }
+                    break;
+                case 6:
+                    System.out.println("Exiting program.");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 6);
+    }
+
+    private void displayArray() {
+        System.out.print("Array with inserted values: ");
+        if (values == null) {
+            System.out.println("Empty");
+        } else {
+            for (int value : values) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    private void insert(int key) {
+        root = insertRec(root, key);
+        updateArray();
+    }
+
+    private TreeNode insertRec(TreeNode root, int key) {
+        if (root == null) {
+            root = new TreeNode(key);
+            return root;
+        }
+
+        if (key < root.key) {
+            root.left = insertRec(root.left, key);
+        } else if (key > root.key) {
+            root.right = insertRec(root.right, key);
+        }
+
+        return root;
+    }
+
+    private void updateArray() {
+        values = new int[getSize(root)];
+        updateArrayRec(root, values, 0);
+    }
+
+    private int updateArrayRec(TreeNode root, int[] array, int index) {
+        if (root != null) {
+            index = updateArrayRec(root.left, array, index);
+            array[index++] = root.key;
+            index = updateArrayRec(root.right, array, index);
+        }
+        return index;
+    }
+
+    private int getSize(TreeNode root) {
+        if (root == null) {
+            return 0;
+        } else {
+            return 1 + getSize(root.left) + getSize(root.right);
+        }
+    }
+
+    private void delete(int key) {
+        root = deleteRec(root, key);
+        updateArray();
+    }
+
+    private TreeNode deleteRec(TreeNode root, int key) {
+        if (root == null) {
+            return root;
+        }
+
+        if (key < root.key) {
+            root.left = deleteRec(root.left, key);
+        } else if (key > root.key) {
+            root.right = deleteRec(root.right, key);
+        } else {
+            if (root.left == null) {
+                return root.right;
+            } else if (root.right == null) {
+                return root.left;
+            }
+
+            root.key = minValue(root.right);
+            root.right = deleteRec(root.right, root.key);
+        }
+
+        return root;
+    }
+
+    private int minValue(TreeNode root) {
+        int minValue = root.key;
+        while (root.left != null) {
+            minValue = root.left.key;
+            root = root.left;
+        }
+        return minValue;
+    }
+
+    private boolean search(int key) {
+        return searchRec(root, key);
+    }
+
+    private boolean searchRec(TreeNode root, int key) {
+        if (root == null || root.key == key) {
+            return root != null;
+        }
+
+        if (key < root.key) {
+            return searchRec(root.left, key);
+        }
+
+        return searchRec(root.right, key);
+    }
+
+    private String inorderTraversal() {
+        StringBuilder result = new StringBuilder();
+        inorderTraversalRec(root, result);
+        return result.toString();
+    }
+
+    private void inorderTraversalRec(TreeNode root, StringBuilder result) {
+        if (root != null) {
+            inorderTraversalRec(root.left, result);
+            result.append(root.key).append(" ");
+            inorderTraversalRec(root.right, result);
+        }
+    }
+
+    private String postorderTraversal() {
+        StringBuilder result =
+
+                new StringBuilder();
+        postorderTraversalRec(root, result);
+        return result.toString();
+    }
+
+    private void postorderTraversalRec(TreeNode root, StringBuilder result) {
+        if (root != null) {
+            postorderTraversalRec(root.left, result);
+            postorderTraversalRec(root.right, result);
+            result.append(root.key).append(" ");
+        }
+    }
+
+    private String preorderTraversal() {
+        StringBuilder result = new StringBuilder();
+        preorderTraversalRec(root, result);
+        return result.toString();
+    }
+
+    private void preorderTraversalRec(TreeNode root, StringBuilder result) {
+        if (root != null) {
+            result.append(root.key).append(" ");
+            preorderTraversalRec(root.left, result);
+            preorderTraversalRec(root.right, result);
+        }
+    }
+}
